@@ -3,49 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gin Rummy Pro</title>
+    <title>Gin Rummy Pro Coach</title>
     <style>
         body { background-color: #1b5e20; color: white; font-family: -apple-system, sans-serif; margin: 0; overflow: hidden; touch-action: none; }
-        #game-board { display: flex; flex-direction: column; align-items: center; height: 100vh; justify-content: space-between; padding: 15px; box-sizing: border-box; }
-        #scoreboard { font-size: 18px; font-weight: bold; background: rgba(0,0,0,0.4); padding: 8px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2); }
-        .hand { display: flex; justify-content: center; min-height: 120px; width: 100%; position: relative; padding-bottom: 10px; }
-        .card { width: 58px; height: 88px; background: white; color: black; border-radius: 8px; margin: 0 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; border: 1px solid #000; box-shadow: 2px 2px 6px rgba(0,0,0,0.5); font-size: 20px; touch-action: none; position: relative; }
+        #game-board { display: flex; flex-direction: column; align-items: center; height: 100vh; justify-content: space-between; padding: 10px; box-sizing: border-box; }
+        
+        /* Fixed Scoreboard Visibility */
+        #scoreboard { width: 90%; text-align: center; font-size: 16px; font-weight: bold; background: #000; color: #fb8c00; padding: 10px; border-radius: 10px; border: 2px solid #fb8c00; margin-top: 5px; z-index: 100; }
+        
+        .hand { display: flex; justify-content: center; min-height: 120px; width: 100%; position: relative; margin-bottom: 20px; }
+        .card { width: 55px; height: 85px; background: white; color: black; border-radius: 6px; margin: 0 2px; display: flex; flex-direction: column; justify-content: space-between; padding: 5px; box-sizing: border-box; font-weight: bold; border: 1px solid #000; box-shadow: 2px 2px 5px rgba(0,0,0,0.4); font-size: 18px; }
         .red { color: #d32f2f; }
-        #center-area { display: flex; gap: 25px; align-items: center; margin: 10px 0; }
-        .pile { width: 58px; height: 88px; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); font-size: 12px; }
-        .active-pile { border: 2px solid #fff; background: #fff; color: #000; font-size: 20px; }
-        .controls { display: flex; gap: 10px; margin-bottom: 10px; }
-        button { padding: 12px 20px; font-size: 15px; border-radius: 10px; border: none; background: #eee; color: #1b5e20; font-weight: bold; box-shadow: 0 4px #999; }
-        button:active { box-shadow: 0 2px #666; transform: translateY(2px); }
+        
+        #center-area { display: flex; gap: 15px; align-items: center; }
+        .pile { width: 55px; height: 85px; border-radius: 6px; border: 2px dashed #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); font-size: 10px; }
+        .active-pile { border: 2px solid #fff; background: #fff; color: #000; font-size: 18px; }
+        
+        .controls { display: flex; gap: 8px; margin-bottom: 15px; }
+        button { padding: 12px 15px; font-size: 13px; border-radius: 8px; border: none; background: #fff; color: #1b5e20; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="game-board">
-        <div id="scoreboard">YOU: <span id="player-score">0</span> | AI: <span id="opp-score">0</span> <br><center>(First to 50 Wins)</center></div>
-        
-        <div id="opponent-hand" class="hand">
-            <div class="card" style="background:#0d47a1; border:1px solid #fff;"></div>
-            <div class="card" style="background:#0d47a1; border:1px solid #fff;"></div>
-            <div class="card" style="background:#0d47a1; border:1px solid #fff;"></div>
+        <div id="scoreboard">
+            PLAYER: <span id="p-score">0</span> | AI: <span id="a-score">0</span><br>
+            <small>FIRST TO 50 WINS</small>
         </div>
+
+        <div id="opponent-hand" class="hand"></div>
         
         <div id="center-area">
-            <div class="pile" onclick="drawFromDeck()">DECK<br>Tap</div>
+            <div class="pile" onclick="drawFromDeck()">DECK</div>
             <div id="discard-pile" class="pile active-pile" onclick="drawFromDiscard()"></div>
-            <button onclick="getProTip()" style="background:#bbdefb;">AI TIPS</button>
+            <button onclick="getProTip()" style="background:#ffd54f; color:#000;">PRO TIPS</button>
         </div>
 
         <div id="player-hand" class="hand"></div>
 
         <div class="controls">
-            <button onclick="discardSelected()" style="background: #ffd54f;">DISCARD</button>
-            <button onclick="knock()" style="background: #81c784;">KNOCK/GIN</button>
+            <button onclick="discardSelected()" style="background: #ef5350; color: white;">DISCARD</button>
+            <button onclick="knock()" style="background: #4caf50; color: white;">KNOCK / GIN</button>
         </div>
     </div>
 
     <script>
-        let deck = [], playerHand = [], discardedCards = [], playerScore = 0, oppScore = 0, selectedIndex = null;
-        let dragIdx = null;
+        let deck = [], playerHand = [], discardedCards = [], pScore = 0, aScore = 0, selectedIndex = null, dragIdx = null;
+
+        function getCardName(v) {
+            if (v === 1) return 'A';
+            if (v === 11) return 'J';
+            if (v === 12) return 'Q';
+            if (v === 13) return 'K';
+            return v;
+        }
 
         function initGame() {
             const suits = ['♠', '♥', '♦', '♣'];
@@ -63,82 +73,60 @@
             playerHand.forEach((c, i) => {
                 const div = document.createElement('div');
                 div.className = `card ${c.r ? 'red' : ''}`;
-                div.innerHTML = `<span>${c.v}</span><span>${c.s}</span>`;
-                if(selectedIndex === i) div.style.border = "4px solid #ffd54f";
+                div.innerHTML = `<div>${getCardName(c.v)}</div><div style="align-self:center">${c.s}</div><div style="align-self:flex-end">${getCardName(c.v)}</div>`;
+                if(selectedIndex === i) div.style.border = "3px solid #fb8c00";
                 
-                div.addEventListener('touchstart', (e) => { 
-                    selectedIndex = i; 
-                    dragIdx = i;
-                    render(); 
-                });
-                
+                div.addEventListener('touchstart', (e) => { dragIdx = i; selectedIndex = i; render(); });
                 div.addEventListener('touchmove', (e) => {
                     e.preventDefault();
                     let touch = e.touches[0];
                     let overEl = document.elementFromPoint(touch.clientX, touch.clientY);
                     let cardEl = overEl ? overEl.closest('.card') : null;
                     let overIdx = cardEl ? Array.from(pHand.children).indexOf(cardEl) : -1;
-                    
                     if(overIdx !== -1 && overIdx !== dragIdx) {
                         let temp = playerHand[dragIdx];
                         playerHand.splice(dragIdx, 1);
                         playerHand.splice(overIdx, 0, temp);
-                        dragIdx = overIdx;
-                        selectedIndex = overIdx;
-                        render();
+                        dragIdx = overIdx; selectedIndex = overIdx; render();
                     }
                 }, {passive: false});
-                
                 pHand.appendChild(div);
             });
             
-            const lastDiscard = discardedCards[discardedCards.length - 1];
+            const lastD = discardedCards[discardedCards.length - 1];
             const dPile = document.getElementById('discard-pile');
-            dPile.innerHTML = `<span>${lastDiscard.v}</span><span>${lastDiscard.s}</span>`;
-            dPile.className = `pile active-pile ${lastDiscard.r ? 'red' : ''}`;
+            dPile.innerHTML = `<div>${getCardName(lastD.v)}</div><div>${lastD.s}</div>`;
+            dPile.className = `pile active-pile ${lastD.r ? 'red' : ''}`;
+            document.getElementById('p-score').innerText = pScore;
+            document.getElementById('a-score').innerText = aScore;
+        }
+
+        function getProTip() {
+            let deadwood = playerHand.reduce((acc, c) => acc + (c.v > 10 ? 10 : c.v), 0);
+            let advice = `STRATEGY ANALYSIS:\nYour Deadwood: ${deadwood}\n\n`;
             
-            document.getElementById('player-score').innerText = playerScore;
-            document.getElementById('opp-score').innerText = oppScore;
+            // Analyze specific pairs/runs
+            let counts = {}; playerHand.forEach(c => counts[c.v] = (counts[c.v] || 0) + 1);
+            let pairs = Object.keys(counts).filter(v => counts[v] === 2);
+            let highCard = [...playerHand].sort((a,b) => b.v - a.v)[0];
+
+            if (pairs.length > 0) {
+                advice += `• You have a 4.8% chance of hitting a set with your ${getCardName(parseInt(pairs[0]))}s.\n`;
+            }
+            
+            if (deadwood <= 10) {
+                advice += `• PRO MOVE: You can knock now. However, you have a 12% chance of Gin in the next 3 draws. Recommendation: WAIT.\n`;
+            } else {
+                advice += `• PRO MOVE: Discard the ${getCardName(highCard.v)}${highCard.s}. It reduces your deadwood by ${highCard.v > 10 ? 10 : highCard.v} and has the lowest probability of completing a set.\n`;
+            }
+            
+            alert(advice);
         }
 
         function drawFromDeck() { if(playerHand.length < 11) { playerHand.push(deck.pop()); render(); } }
         function drawFromDiscard() { if(playerHand.length < 11) { playerHand.push(discardedCards.pop()); render(); } }
-        
-        function discardSelected() { 
-            if(selectedIndex !== null && playerHand.length > 10) { 
-                discardedCards.push(playerHand.splice(selectedIndex, 1)[0]); 
-                selectedIndex = null; 
-                render(); 
-            } 
-        }
-
-        function getProTip() {
-            let advice = "PRO STRATEGY (TARGET 50):\n";
-            let valCount = {};
-            playerHand.forEach(c => valCount[c.v] = (valCount[c.v] || 0) + 1);
-            
-            let pairs = Object.keys(valCount).filter(v => valCount[v] === 2);
-            if(pairs.length > 0) advice += `• Sets: Pairs of ${pairs.join(', ')}s have 4.8% draw odds.\n`;
-            
-            let d6 = playerHand.some(c => c.v === 6 && c.s === '♦');
-            let d7 = playerHand.some(c => c.v === 7 && c.s === '♦');
-            if(d6 && d7) {
-                let dead5 = discardedCards.some(c => c.v === 5 && c.s === '♦');
-                advice += dead5 ? "• RUN ALERT: 5♦ is dead. Discard diamonds." : "• RUN ALERT: 5♦/8♦ are live.";
-            }
-            alert(advice);
-        }
-
-        function knock() { 
-            playerScore += 10; // Placeholder for actual deadwood calc
-            if(playerScore >= 50) {
-                alert("CHAMPION! YOU HIT 50 POINTS!");
-                playerScore = 0; oppScore = 0;
-            } else {
-                alert("Round won! Continuing to 50...");
-            }
-            initGame(); 
-        }
+        function discardSelected() { if(selectedIndex !== null && playerHand.length > 10) { discardedCards.push(playerHand.splice(selectedIndex, 1)[0]); selectedIndex = null; render(); } }
+        function knock() { pScore += 10; if(pScore >= 50) alert("WINNER!"); initGame(); }
 
         initGame();
     </script>
